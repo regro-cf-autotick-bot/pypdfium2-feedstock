@@ -10,13 +10,6 @@ source:
   # NOTE: the GH release contains the test folder that is not available in the PyPI release.
   url: https://github.com/pypdfium2-team/pypdfium2/archive/refs/tags/${{ version }}.zip
   sha256: dc6d568fbb4337cb77d578a99a72d347d0aedb9f0270218cf7ab94367b0cf86f
-  patches:
-    # PDFium's vendored build/vs_toolchain.py and build/toolchain/win/setup_toolchain.py
-    # hardcode an exact Windows SDK version for vcvarsall.bat, independently of
-    # --win-sdk-dir. Teach the toolchained build to align that pin with whatever SDK
-    # we actually pass, so it doesn't require a specific (possibly preview-only) SDK
-    # to be installed on the build machine.
-    - patches/win_sdk_version.patch
 
 build:
   number: 0
@@ -24,9 +17,9 @@ build:
     - if: unix
       then: CTYPESGEN_PIN='1' ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
       else: |
+        ${{ PYTHON }} "%RECIPE_DIR%\install_win_sdk.py"
         set PDFIUM_BINDINGS=reference
         set PDFIUM_PLATFORM=sourcebuild-toolchained
-        set BUILD_PARAMS=--win-sdk-dir "%WindowsSdkDir%bin\%WindowsSdkVersion%x64"
         ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   dynamic_linking:
     # Normally rattler-build tries to modify the install_name of the binary as well as other load commands to make it relocatable.
