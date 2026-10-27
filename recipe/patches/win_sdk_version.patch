@@ -1,0 +1,44 @@
+diff --git a/setupsrc/build_toolchained.py b/setupsrc/build_toolchained.py
+index fe7d3d4..34e1045 100644
+--- a/setupsrc/build_toolchained.py
++++ b/setupsrc/build_toolchained.py
+@@ -3,6 +3,7 @@
+ # SPDX-License-Identifier: Apache-2.0 OR BSD-3-Clause
+ 
+ import os
++import re
+ import sys
+ import argparse
+ from pathlib import Path
+@@ -202,6 +203,20 @@ def handle_windows(win_sdk_dir):
+     os.environ["DEPOT_TOOLS_WIN_TOOLCHAIN"] = "0"
+ 
+ 
++def patch_win_sdk_version(win_sdk_dir):
++    # PDFium's vendored build/vs_toolchain.py and build/toolchain/win/setup_toolchain.py
++    # hardcode an exact Windows SDK version and pass it to vcvarsall.bat unconditionally
++    # in ambient-MSVC mode (DEPOT_TOOLS_WIN_TOOLCHAIN=0), independently of win_sdk_dir.
++    # Align that pin with whatever SDK is actually being used, taken from the version
++    # folder name in win_sdk_dir (".../bin/<version>/x64").
++    sdk_version = Path(win_sdk_dir).parent.name
++    for rel_path in ("vs_toolchain.py", "toolchain/win/setup_toolchain.py"):
++        fp = PDFiumDir_build / rel_path
++        text = fp.read_text()
++        patched = re.sub(r"SDK_VERSION = '[^']+'", f"SDK_VERSION = '{sdk_version}'", text)
++        fp.write_text(patched)
++
++
+ def handle_cross(config, target_cpu, target_os):
+     
+     # TODO compare target_cpu (and target_os) against host to determine whether it's actually cross
+@@ -262,7 +277,9 @@ def main(
+     did_pdfium_sync = dl_pdfium(do_update, pdfium_rev, target_os, orig_path)
+     if did_pdfium_sync:
+         patch_pdfium(build_ver, target_cpu, target_os, patch_clang, prefer_gcc)
+-    
++    if sys.platform.startswith("win32") and win_sdk_dir is not None:
++        patch_win_sdk_version(win_sdk_dir)
++
+     is_cross = handle_cross(config, target_cpu, target_os)
+     config_str = serialize_gn_config(config)
+     configure(config_str)

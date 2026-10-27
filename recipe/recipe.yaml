@@ -10,6 +10,13 @@ source:
   # NOTE: the GH release contains the test folder that is not available in the PyPI release.
   url: https://github.com/pypdfium2-team/pypdfium2/archive/refs/tags/${{ version }}.zip
   sha256: dc6d568fbb4337cb77d578a99a72d347d0aedb9f0270218cf7ab94367b0cf86f
+  patches:
+    # PDFium's vendored build/vs_toolchain.py and build/toolchain/win/setup_toolchain.py
+    # hardcode an exact Windows SDK version for vcvarsall.bat, independently of
+    # --win-sdk-dir. Teach the toolchained build to align that pin with whatever SDK
+    # we actually pass, so it doesn't require a specific (possibly preview-only) SDK
+    # to be installed on the build machine.
+    - patches/win_sdk_version.patch
 
 build:
   number: 0
