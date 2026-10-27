@@ -19,6 +19,7 @@ build:
       else: |
         set PDFIUM_BINDINGS=reference
         set PDFIUM_PLATFORM=sourcebuild-toolchained
+        set BUILD_PARAMS=--win-sdk-dir "%WindowsSdkDir%bin\%WindowsSdkVersion%x64"
         ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   dynamic_linking:
     # Normally rattler-build tries to modify the install_name of the binary as well as other load commands to make it relocatable.
