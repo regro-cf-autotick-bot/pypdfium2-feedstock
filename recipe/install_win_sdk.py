@@ -32,6 +32,13 @@ PACKAGES = {
         ("c/ucrt/x64", os.path.join(KITS_ROOT, "Lib", SDK_VERSION, "ucrt", "x64")),
         ("c/ucrt_enclave/x64", os.path.join(KITS_ROOT, "Lib", SDK_VERSION, "ucrt_enclave", "x64")),
     ],
+    # GN bootstraps toolchain environments for multiple host CPUs (e.g. x86) even
+    # when only building for x64, so the x86 SDK libs must exist too, or `gn gen`
+    # fails validating environment.x86 before any actual x86 compilation happens.
+    "microsoft.windows.sdk.cpp.x86": [
+        ("c/um/x86", os.path.join(KITS_ROOT, "Lib", SDK_VERSION, "um", "x86")),
+        ("c/ucrt/x86", os.path.join(KITS_ROOT, "Lib", SDK_VERSION, "ucrt", "x86")),
+    ],
 }
 
 NUGET_URL = "https://api.nuget.org/v3-flatcontainer/{pkg}/{ver}/{pkg}.{ver}.nupkg"
